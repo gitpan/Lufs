@@ -5,7 +5,7 @@ use Lufs::C;
 
 use strict;
 use warnings;
-our $VERSION = 0.15;
+our $VERSION = 0.16;
 
 use vars qw/$AUTOLOAD/;
 
@@ -26,6 +26,7 @@ sub _init {
     if ($@) { warn "cannot load class: $@"; return 0 }
     eval 'push @'.$class."::ISA, 'Lufs::Glue'";
     $self->{fs} = bless {} => $class;
+	$opt->{logfile} ||= '/tmp/perlfs.log';
 	open(STDERR, ">> $opt->{logfile}") if $opt->{logfile};
 	$Lufs::Glue::trace = 1 if $opt->{logfile};
     $self->{fs}->init($opt);
@@ -35,7 +36,13 @@ sub AUTOLOAD {
     my $self = shift;
     my $method = (split/::/,$AUTOLOAD)[-1];
     $method eq 'DESTROY' && return;
-    $self->{fs}->$method(@_);
+	if ($self->{fs}->can($method)) {
+		return $self->{fs}->$method(@_);
+	}
+	else {
+		print STDERR "$method not implemented\n";
+	}
+	return 0;
 }
 
 1;
@@ -47,27 +54,27 @@ Lufs - Perl plug for lufs
 
 =head1 DESCRIPTION
 
-  The C code is a lufs module with an embedded perl interpreter;
-  All filesystem calls are redirected to Lufs::C, which in turn gives them to your subclass;
+  The C code is a lufs module with an embedded perl interpreter.
+  All filesystem calls are redirected to Lufs::C, which in turn gives them to your subclass.
 
-  currently, these filesystems have been implemented:
+  currently, these filesystems are included:
 
-  Lufs::Stub - A hello world fs, look here for an introduction to the api
-  Lufs::Local - Like localfs in lufs, a transparent fs
-  Lufs::Ram - Ramfs
-  Lufs::Trans - emulates filehandles on top of sequential reads/writes
+  Lufs::Local
+  Lufs::Ram
+  Lufs::Http
+  Lufs::Svn
 
-  lufsmount -c 1 perlfs://Lufs.Stub/ /mnt/perl
-  lufsmount -c 1 -o logfile=/tmp/perlfslog perlfs://Lufs.Local/ /mnt/foo
-  lufsmount -c 1 -o maxsize=20m perlfs://Lufs.Ram/ /mnt/bar
-  lufsmount -c 1 perlfs://Lufs.Trans/ /mnt/baz
+  lufsmount -o logfile=/tmp/perlfslog perlfs://Lufs.Local/ /mnt/foo
+  lufsmount perlfs://Lufs.Ram/ /mnt/bar
+  lufsmount -o uri=svn://datamoeras.org/perlufs perlfs://Lufs::Svn/
+  lufsmount -o uri=http://datamoeras.org perlfs://Lufs::Http/
   # or, if you have autofs:
-  cd /mnt/perl/root@Lufs.Stub/
+  cd /mnt/perl/Lufs.Local/
+  cd /mnt/svn/perlufs
   
 =head1 SEE ALSO
 
-  http://lufs.sf.net
-  lufsmount(1)
+L<Lufs::Howto>, L<http://datamoeras.org/perlufs>, L<http://lufs.sf.net>, L<lufsmount(1)>
 
 =head1 AUTHOR
 

@@ -1,10 +1,37 @@
-# http://module-build.sourceforge.net/META-spec.html
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
-name:         Lufs
-version:      0.15
-version_from: Lufs.pm
-installdirs:  site
-requires:
-
+--- #YAML:1.0
+name: Lufs
+version: 0.16
+license: perl
 distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.20
+requires:
+  HTML::TokeParser::Simple: 0
+  Inline::MakeMaker: 0
+  Linux::Pid: 0
+recommends: {}
+build_requires: {}
+conflicts: {}
+provides:
+  Lufs:
+    file: lib/Lufs.pm
+    version: 0.16
+  Lufs::C:
+    file: lib/Lufs/C.pm
+  Lufs::Glue:
+    file: lib/Lufs/Glue.pm
+  Lufs::Http:
+    file: lib/Lufs/Http.pm
+  Lufs::Local:
+    file: lib/Lufs/Local.pm
+  Lufs::Ram:
+    file: lib/Lufs/Ram.pm
+  Lufs::Ram::Node:
+    file: lib/Lufs/Ram.pm
+  Lufs::Stub:
+    file: lib/Lufs/Stub.pm
+  Lufs::Svn:
+    file: lib/Lufs/Svn.pm
+  Lufs::Svn::Svn:
+    file: lib/Lufs/Svn.pm
+  Lufs::Svn::Svn::System:
+    file: lib/Lufs/Svn.pm
+generated_by: Module::Build version 0.21

@@ -2,6 +2,8 @@ package Lufs::Glue;
 $|++;
 
 use Fcntl;
+use Linux::Pid;
+
 our $trace = 0;
 
 sub TRACE {
@@ -13,7 +15,7 @@ sub TRACE {
 	if ($method eq 'create') {
 		$arg[1] = $self->mode($arg[1]);
 	}
-	if ($method eq 'stat') {
+	if ($method eq 'stat' or $method eq 'setattr') {
 		$arg[1] = $self->hashdump($arg[1]);
 	}
 	if ($method eq 'write' or $method eq 'read') {
@@ -22,8 +24,14 @@ sub TRACE {
 	if ($method eq '_init') {
 		$arg[0] = $self->hashdump($arg[0]);
 	}
+	if ($method eq 'GET' or $method eq 'HEAD') {
+		$ret = pop(@arg).' '.pop(@arg).' '.$self->hashdump($ret);
+	}
+	if ($method eq 'readdir') {
+		$arg[-1] = '['.join(', ', @{$arg[-1]}).']';
+	}
 	$arg[0] = "'$arg[0]'";
-    print STDERR "$method (".join(', ', @arg).") = $ret\n";
+    print STDERR '['.Linux::Pid::getpid()."] $method (".join(', ', @arg).") = $ret\n";
 }
 
 sub _truncdata {
@@ -31,13 +39,25 @@ sub _truncdata {
 	my $data = shift;
 	no warnings;
 	my $s = (length$data>32)?"...":'';
-	"'".substr($data, 0, 32)."'$s";
+	$s="'".substr($data, 0, 32)."'$s";
+	$s=~s{\n}{\\n}g;
+	$s=~s{([^ -~])}{sprintf("0x%x", $1)}ge;
+	$s;
 }
 
 sub modes { # this generates the %m hash
 	my $self = shift;
+	my $arg = shift;
+	if ($arg eq 'S') {
+		return (Fcntl::S_IFREG() => 'S_IFREG', 
+				Fcntl::S_IFDIR() => 'S_IFDIR',
+				Fcntl::S_IFLNK() => 'S_IFLNK',
+				Fcntl::S_IFCHR() => 'S_IFCHR',
+				Fcntl::S_IFIFO() => 'S_IFIFO',
+				Fcntl::S_IFSOCK() => 'S_IFSOCK');
+	}
 	my %m;
-	for (grep /^[O]/, keys %{Fcntl::}) {
+	for (grep /^O/, keys %{Fcntl::}) {
 		my $v = eval "Fcntl::$_";
 		next unless (int($v) eq $v);
 		$m{$v} = $_ if $v;
@@ -47,9 +67,22 @@ sub modes { # this generates the %m hash
 
 sub mode {
 	my $self = shift;
-	my $mode = shift || Fcntl::O_CREAT | Fcntl::O_LARGEFILE;
+	my $mode = shift;
 	my @m;
-	my %m = modes();
+	my %m = $self->modes('O');
+	for (keys %m) {
+		if (($mode & $_) == $_) {
+			push @m, $m{$_};
+		}
+	}
+	join(' | ', @m);
+}
+
+sub fmode {
+	my $self = shift;
+	my $mode = shift;
+	my @m;
+	my %m = $self->modes('S');
 	for (keys %m) {
 		if (($mode & $_) == $_) {
 			push @m, $m{$_};
@@ -61,7 +94,10 @@ sub mode {
 sub hashdump {
 	my $self = shift;
 	my $h = shift;
- 	'{ '.join(', ', map { "$_ => $h->{$_}" } keys %{$h}).'}';
+ 	'{ '.join(', ', 
+		map { "$_->[0] => $_->[1]" }
+		map { $_ eq 'f_mode' ? [$_, $self->fmode($h->{$_})] : [$_, $h->{$_}] }
+	keys %{$h}).'}';
 }
 1;
 __END__

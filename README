@@ -1,4 +1,4 @@
-Lufs version 0.12
+Lufs version 0.16
 =================
 
 This is perlufs, a perl plug for lufs.
@@ -8,16 +8,10 @@ INSTALLATION
 
 To install this module type the following:
 
-   # the perl module:
-   perl Makefile.PL 
-   make
-   make test
-   make install
-
-   # the C library: 
-   cd perlfs
-   make
-   make install
+   perl Build.PL 
+   ./Build
+   ./Build test
+   ./Build install
 
    # the lufs patch:
    cd lufs-0.9.7
@@ -28,12 +22,15 @@ To install this module type the following:
 USAGE
 
 For usage information, consult the Lufs(3pm) manpage.
-For programming examples, see the Lufs::Stub(3pm) manpage.
+For programming examples, see the Lufs::Howto(3pm) manpage.
 
 DEPENDENCIES
 
-Of course you need lufs (http://lufs.sf.net) to use this.
-At the moment there are no other dependencies, besides a recent perl.
+You need a recent version of lufs (http://lufs.sf.net), with the included patch applied.
+
+SEE ALSO
+
+http://datamoeras.org/perlufs
 
 COPYRIGHT AND LICENCE
 

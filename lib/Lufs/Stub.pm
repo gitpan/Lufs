@@ -122,7 +122,7 @@ Lufs::Stub - A hello-world filesystem for use with perlufs
 
 =head1 DESCRIPTION
 
-This is a reference implementation, demonstrating the API.
+This is an example, demonstrating the API.
 Unless stated otherwise, methods are expected to return 1 for succes, and 0 for failure.
 
 =head1 METHODS
@@ -170,6 +170,10 @@ This should return a string: the filename that the link points at.
 =head1 AUTHOR
 
 Raoul Zwart, E<lt>rlzwart@cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<Lufs::Howto>, L<Lufs>
 
 =head1 COPYRIGHT AND LICENSE
 

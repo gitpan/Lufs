@@ -1,29 +1,22 @@
 package Lufs::Local;
 
 use strict;
-use warnings;
+
+use Fcntl;
 
 sub init {
     my $self = shift;
+	$self->{config} = shift;
 }
 
-sub _file { $_[0] } #!~ /^\// ? "/".$_[0] : $_[0] }
+sub mount { 1 }
 
-sub mount {
-    my $self = shift;
-    return 1;
-}
-
-sub umount {
-    my $self = shift;
-    return 1;
-}
+sub umount { 1 }
 
 sub readdir {
     my $self = shift;
-    my $dir = _file(shift);
+    my $dir = shift;
     my $ref = shift;
-    # $self->TRACE("readdir($dir)");
     unless (-d $dir) { return 0 }
     chdir($dir) or return 0;
     unless (opendir(DIR,$dir)) { return 0 }
@@ -39,9 +32,8 @@ sub readdir {
 
 sub stat {
     my $self = shift;
-    my $file = _file(shift);
+    my $file = shift;
     my $ref = shift;
-    # $self->TRACE("stat($file)");
     unless (-e $file) { return 0 }
     my @s = CORE::stat($file) or return 0;
     $ref->{f_ino} = $s[1];
@@ -58,19 +50,18 @@ sub stat {
     return 1;
 }
  
-sub mkdir { 
+sub mkdir {
     my $self = shift;
-    my $dir = _file(shift);
+    my $dir = shift;
     my $mode = shift;
     if (mkdir($dir,$mode)) { return 1 }
     else { return 0 }
 }
 
-sub open { 
+sub open {
     my $self = shift;
-    my $file = _file(shift);
+    my $file = shift;
     my $mode = shift;
-    if ($file =~ /(passwd|shadow)/) { return 0 }
     if (sysopen(FH,$file,$mode)) {
         close FH;
         return 1;
@@ -80,7 +71,7 @@ sub open {
 
 sub release {
     my $self = shift;
-    my $file = _file(shift);
+    my $file = shift;
     return 1;
 }
 
@@ -98,7 +89,7 @@ sub rmdir {
 
 sub read { 
     my $self = shift;
-    my $file = _file(shift);
+    my $file = shift;
     my $offset = shift;
     my $count = shift;
     CORE::open(FH,$file) or return -1;
@@ -110,10 +101,10 @@ sub read {
 
 sub write {
     my $self = shift;
-    my $file = _file(shift);
+    my $file = shift;
     my ($offset, $count, $buf) = @_;
     CORE::sysopen(FH,$file,1) or return -1;
-    CORE::seek(FH,$offset,0)or $self->TRACE("sysseek($file,$offset,0) failed: $!");
+    CORE::seek(FH,$offset,0);
     CORE::print(FH $buf);
     CORE::close(FH);
     return $count;
@@ -121,17 +112,17 @@ sub write {
 
 sub link {
     my $self = shift;
-    CORE::link(_file($_[0]),_file($_[1]));
+    CORE::link($_[0],$_[1]);
 }
 
 sub symlink {
     my $self = shift;
-    CORE::symlink(_file($_[0]),_file($_[1]));
+    CORE::symlink($_[0],$_[1]);
 }
 
 sub readlink {
     my $self = shift;
-    my $link = _file(shift);
+    my $link = shift;
     if ($_[0] = CORE::readlink($link)) {
         $_[0] =~ s{^/}{};
         return 1;
@@ -141,9 +132,9 @@ sub readlink {
     }
 }
 
-sub setattr { # works, cache lags though
+sub setattr {
     my $self = shift;
-    my $file = _file(shift);
+    my $file = shift;
     my $attr = shift;
     unless (-e $file) { return 0 }
     my @s = CORE::stat($file) or return 0;
@@ -156,14 +147,15 @@ sub setattr { # works, cache lags though
 sub create {
     my $self = shift;
     my ($file,$mode) = @_;
-    sysopen(FH,$file,$mode) or return 0;
+    sysopen(FH,$file, O_RDWR | O_EXCL | O_CREAT) or return 0;
     close(FH);
+	chmod($mode & 0777, $file);
     return 1;
 }
 
 sub rename {
     my $self = shift;
-    CORE::rename(_file(shift),_file(shift));
+    CORE::rename(shift,shift);
 }
 
 1;

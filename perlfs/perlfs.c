@@ -1,4 +1,4 @@
-/* june 2003 - Raoul Zwart - rlzwart@cpan.org */
+/* jue 2003 - Raoul Zwart - rlzwart@cpan.org */
 
 #include "perlfs.h"
 #include "list.h"
@@ -15,7 +15,6 @@ struct domain {
 	struct list_head list;
 };
 
-
 EXTERN_C void xs_init (pTHX);
 EXTERN_C void boot_DynaLoader (pTHX_ CV* cv);
 
@@ -29,10 +28,14 @@ xs_init(pTHX) {
 void* 
 perlfs_init(struct list_head *cfg, struct dir_cache *cache, struct credentials *cred, void** dus) {
     struct perlfs_context *c;
+	
     if(!(c = malloc(sizeof(struct perlfs_context)))){
         return NULL;
     }
-
+#ifdef USE_MUTEX
+	pthread_mutex_init(&c->mutex, NULL);
+#endif
+	LOCK_MUTEX(c);
     c->cache = cache;
     c->cred = cred;
     c->cfg = cfg;
@@ -40,12 +43,14 @@ perlfs_init(struct list_head *cfg, struct dir_cache *cache, struct credentials *
     _create_perl(c);
     _init_perl(c);
     _setup_perl(c);
+	UNLOCK_MUTEX(c);
     
     return c;
 }
 
 void
 _create_perl(struct perlfs_context* c) {
+	/* we already own the mutex when this is called */
     c->perl = perl_alloc();
     perl_construct(c->perl);
 
@@ -120,21 +125,30 @@ _setup_perl(struct perlfs_context* c) {
     
 void*
 perlfs_free(struct perlfs_context* c) {
+	LOCK_MUTEX(c);
     perl_destruct(c->perl);
     perl_free(c->perl);
+	UNLOCK_MUTEX(c);
+#ifdef USE_MUTEX
+	pthread_mutex_destroy(&c->mutex);
+#endif
     free(c);
     return NULL;
 }
 
 int
 perlfs_mount(struct perlfs_context* c) {
+	LOCK_MUTEX(c);
     eval_pv("Lufs::C::mount", TRUE);
+	UNLOCK_MUTEX(c);
     return 1;
 }
 
 void*
 perlfs_umount(struct perlfs_context* c) {
+	LOCK_MUTEX(c);
     eval_pv("Lufs::C::umount",TRUE);
+	UNLOCK_MUTEX(c);
     return NULL;
 }
 
@@ -152,7 +166,9 @@ perlfs_readdir(struct perlfs_context* c, char* file, struct directory* dir) {
     XPUSHs(sv_2mortal(newSVpv(file,0)));
     XPUSHs(ref);
     PUTBACK;
+	LOCK_MUTEX(c);
     count = call_pv("Lufs::C::readdir",G_SCALAR);
+	UNLOCK_MUTEX(c);
     SPAGAIN;
     if (count != 1) {
         TRACE("trouble");
@@ -264,7 +280,9 @@ perlfs_stat(struct perlfs_context* c, char* file, struct lufs_fattr* attr) {
     XPUSHs(sv_2mortal(newSVpv(file,0)));
     XPUSHs(ref);
     PUTBACK;
+	LOCK_MUTEX(c);
     count = call_pv("Lufs::C::stat",G_SCALAR);
+	UNLOCK_MUTEX(c);
     SPAGAIN;
     ret = POPi;
     PUTBACK;
@@ -290,7 +308,9 @@ perlfs_mkdir(struct perlfs_context* c, char* file, int mode) {
     XPUSHs(sv_2mortal(newSVpv(file,0)));
     XPUSHs(sv_2mortal(newSViv(mode)));
     PUTBACK;
+	LOCK_MUTEX(c);
     count = call_pv("Lufs::C::mkdir",G_SCALAR);
+	UNLOCK_MUTEX(c);
     SPAGAIN;
     ret = POPi;
     PUTBACK;
@@ -313,7 +333,9 @@ perlfs_rmdir(struct perlfs_context* c, char* file) {
     PUSHMARK(SP);
     XPUSHs(sv_2mortal(newSVpv(file,0)));
     PUTBACK;
+	LOCK_MUTEX(c);
     count = call_pv("Lufs::C::rmdir",G_SCALAR);
+	UNLOCK_MUTEX(c);
     SPAGAIN;
     ret = POPi;
     PUTBACK;
@@ -337,7 +359,9 @@ perlfs_create(struct perlfs_context* c, char* file, int mode) {
     XPUSHs(sv_2mortal(newSVpv(file,0)));
     XPUSHs(sv_2mortal(newSViv(mode)));
     PUTBACK;
+	LOCK_MUTEX(c);
     count = call_pv("Lufs::C::create",G_SCALAR);
+	UNLOCK_MUTEX(c);
     SPAGAIN;
     ret = POPi;
     PUTBACK;
@@ -360,7 +384,9 @@ perlfs_unlink(struct perlfs_context* c, char* file) {
     PUSHMARK(SP);
     XPUSHs(sv_2mortal(newSVpv(file,0)));
     PUTBACK;
+	LOCK_MUTEX(c);
     count = call_pv("Lufs::C::unlink",G_SCALAR);
+	UNLOCK_MUTEX(c);
     SPAGAIN;
     ret = POPi;
     PUTBACK;
@@ -384,7 +410,9 @@ perlfs_rename(struct perlfs_context* c, char* file_a, char* file_b) {
     XPUSHs(sv_2mortal(newSVpv(file_a,0)));
     XPUSHs(sv_2mortal(newSVpv(file_b,0)));
     PUTBACK;
+	LOCK_MUTEX(c);
     count = call_pv("Lufs::C::rename",G_SCALAR);
+	UNLOCK_MUTEX(c);
     SPAGAIN;
     ret = POPi;
     PUTBACK;
@@ -408,7 +436,9 @@ perlfs_open(struct perlfs_context* c, char* file, unsigned mode) {
     XPUSHs(sv_2mortal(newSVpv(file,0)));
     XPUSHs(sv_2mortal(newSViv((int)mode)));
     PUTBACK;
+	LOCK_MUTEX(c);
     count = call_pv("Lufs::C::open",G_SCALAR);
+	UNLOCK_MUTEX(c);
     SPAGAIN;
     ret = POPi;
     PUTBACK;
@@ -431,7 +461,9 @@ perlfs_release(struct perlfs_context* c, char* file) {
     PUSHMARK(SP);
     XPUSHs(sv_2mortal(newSVpv(file,0)));
     PUTBACK;
+	LOCK_MUTEX(c);
     count = call_pv("Lufs::C::release",G_SCALAR);
+	UNLOCK_MUTEX(c);
     SPAGAIN;
     ret = POPi;
     PUTBACK;
@@ -461,7 +493,9 @@ perlfs_read(struct perlfs_context* c, char* file, long long offset, unsigned lon
     XPUSHs(sv_2mortal(newSViv(count)));
     XPUSHs(data);
     PUTBACK;
+	LOCK_MUTEX(c);
     cnt = call_pv("Lufs::C::read",G_SCALAR);
+	UNLOCK_MUTEX(c);
     SPAGAIN;
     ret = POPi;
     PUTBACK;
@@ -490,7 +524,9 @@ perlfs_write(struct perlfs_context* c, char* file, long long offset, unsigned lo
     XPUSHs(sv_2mortal(newSViv(count)));
     XPUSHs(sv_2mortal(newSVpv(buf,count)));
     PUTBACK;
+	LOCK_MUTEX(c);
     cnt = call_pv("Lufs::C::write",G_SCALAR);
+	UNLOCK_MUTEX(c);
     SPAGAIN;
     ret = POPi;
     PUTBACK;
@@ -533,7 +569,9 @@ perlfs_readlink(struct perlfs_context* c, char* file, char* buf, int bufsiz) { /
     XPUSHs(sv_2mortal(newSVpv(file,0)));
     XPUSHs(data);
     PUTBACK;
+	LOCK_MUTEX(c);
     count = call_pv("Lufs::C::readlink",G_SCALAR);
+	UNLOCK_MUTEX(c);
     SPAGAIN;
     ret = POPi;
     PUTBACK;
@@ -560,7 +598,9 @@ perlfs_link(struct perlfs_context* c, char* file_a, char* file_b) {
     XPUSHs(sv_2mortal(newSVpv(file_a,0)));
     XPUSHs(sv_2mortal(newSVpv(file_b,0)));
     PUTBACK;
+	LOCK_MUTEX(c);
     count = call_pv("Lufs::C::link",G_SCALAR);
+	UNLOCK_MUTEX(c);
     SPAGAIN;
     ret = POPi;
     PUTBACK;
@@ -584,7 +624,9 @@ perlfs_symlink(struct perlfs_context* c, char* file_a, char* file_b) {
     XPUSHs(sv_2mortal(newSVpv(file_a,0)));
     XPUSHs(sv_2mortal(newSVpv(file_b,0)));
     PUTBACK;
+	LOCK_MUTEX(c);
     count = call_pv("Lufs::C::symlink",G_SCALAR);
+	UNLOCK_MUTEX(c);
     SPAGAIN;
     ret = POPi;
     PUTBACK;
@@ -613,7 +655,9 @@ perlfs_setattr(struct perlfs_context* c, char* file, struct lufs_fattr* attr) {
     XPUSHs(sv_2mortal(newSVpv(file,0)));
     XPUSHs(ref);
     PUTBACK;
+	LOCK_MUTEX(c);
     count = call_pv("Lufs::C::setattr",G_SCALAR);
+	UNLOCK_MUTEX(c);
     SPAGAIN;
     ret = POPi;
     PUTBACK;

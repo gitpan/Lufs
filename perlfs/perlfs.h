@@ -14,12 +14,23 @@
 #undef DEBUG
 #endif
 #include <perl.h>
+#include <pthread.h>
+
+#ifdef USE_MUTEX
+#define LOCK_MUTEX(c) pthread_mutex_lock(&c->mutex)
+#define UNLOCK_MUTEX(c) pthread_mutex_unlock(&c->mutex)
+#else
+#define LOCK_MUTEX(c)
+#define UNLOCK_MUTEX(c)
+#endif
+
 
 struct perlfs_context {
     PerlInterpreter *perl;
     struct dir_cache *cache;
     struct credentials *cred;
     struct list_head *cfg;
+	pthread_mutex_t mutex;
 };
 
 char * getarstring(AV *, I32);
