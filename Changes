@@ -1,9 +1,15 @@
 Revision history for Perl extension Lufs.
 
-0.09  Tue Jun 17 23:57:16 2003 
+0.12  Wed Dec 31 09:07:16 CET 2003
+	- Fixed major memory leaks
+	- Added Makefile for the C library
+	- Several small bugfixes
+	- Documentation updated
+
+0.09  Tue Jun 17 23:57:16 CET 2003 
     - tested pretty extensively, off to CPAN
 
-0.01  Mon Jun  9 18:40:53 2003
+0.01  Mon Jun  9 18:40:53 CET 2003
 	- original version; created by h2xs 1.22 with options
 		-A -X -n Lufs
 

@@ -46,7 +46,6 @@ Benchmark/Benchmark.pm
 Benchmark/MANIFEST
 Changes
 Makefile.PL
-perlfs/make.sh
 perlfs/auto.perlfs.c
 perlfs/perlfs.c
 perlfs/perlfs.h
