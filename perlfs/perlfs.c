@@ -125,6 +125,7 @@ _setup_perl(struct perlfs_context* c) {
     
 void*
 perlfs_free(struct perlfs_context* c) {
+	/*
 	LOCK_MUTEX(c);
     perl_destruct(c->perl);
     perl_free(c->perl);
@@ -133,6 +134,7 @@ perlfs_free(struct perlfs_context* c) {
 	pthread_mutex_destroy(&c->mutex);
 #endif
     free(c);
+	*/
     return NULL;
 }
 
@@ -154,6 +156,7 @@ perlfs_umount(struct perlfs_context* c) {
 
 int
 perlfs_readdir(struct perlfs_context* c, char* file, struct directory* dir) {
+	LOCK_MUTEX(c);
     AV *l = newAV();
     SV *ref;
     struct lufs_fattr fattr;
@@ -166,21 +169,20 @@ perlfs_readdir(struct perlfs_context* c, char* file, struct directory* dir) {
     XPUSHs(sv_2mortal(newSVpv(file,0)));
     XPUSHs(ref);
     PUTBACK;
-	LOCK_MUTEX(c);
     count = call_pv("Lufs::C::readdir",G_SCALAR);
-	UNLOCK_MUTEX(c);
     SPAGAIN;
     if (count != 1) {
         TRACE("trouble");
     }
     ret = POPi;
+    PUTBACK;
+    FREETMPS;
+    LEAVE;
+	UNLOCK_MUTEX(c);
     if (ret == 0) {
         TRACE("Lufs::C::readdir returned 0, bailing out");
         return -1;
     }
-    PUTBACK;
-    FREETMPS;
-    LEAVE;
     int i;
     char *e;
     for (i=0;i<=av_len(l);i++) {
@@ -201,6 +203,7 @@ fattr2hash(struct lufs_fattr *attr, HV *h) {
     hv_store(h, "f_nlink", 7, newSVnv(attr->f_nlink), 0);
     hv_store(h, "f_uid", 5, newSVnv(attr->f_uid), 0);
     hv_store(h, "f_gid", 5, newSVnv(attr->f_gid), 0);
+    hv_store(h, "f_rdev", 6, newSVnv(attr->f_rdev), 0);
     hv_store(h, "f_size", 6, newSVnv(attr->f_size), 0);
     hv_store(h, "f_atime", 7, newSVnv(attr->f_atime), 0);
     hv_store(h, "f_mtime", 7, newSVnv(attr->f_mtime), 0);
@@ -216,6 +219,7 @@ hash2fattr(HV *h, struct lufs_fattr *attr) {
     attr->f_nlink = getlong(h,"f_nlink");
     attr->f_uid = getlong(h,"f_uid");
     attr->f_gid = getlong(h,"f_gid");
+    attr->f_rdev = getlong(h,"f_rdev");
     attr->f_size = getlong(h,"f_size");
     attr->f_atime = getlong(h,"f_atime");
     attr->f_mtime = getlong(h,"f_mtime");
@@ -267,6 +271,7 @@ getlong(HV * source, char * fieldname)
 
 int
 perlfs_stat(struct perlfs_context* c, char* file, struct lufs_fattr* attr) {
+	LOCK_MUTEX(c);
     HV *h = newHV();
     SV* ref;
     int count;
@@ -280,26 +285,24 @@ perlfs_stat(struct perlfs_context* c, char* file, struct lufs_fattr* attr) {
     XPUSHs(sv_2mortal(newSVpv(file,0)));
     XPUSHs(ref);
     PUTBACK;
-	LOCK_MUTEX(c);
     count = call_pv("Lufs::C::stat",G_SCALAR);
-	UNLOCK_MUTEX(c);
     SPAGAIN;
     ret = POPi;
     PUTBACK;
+	FREETMPS;
+	LEAVE;
+	UNLOCK_MUTEX(c);
     if (!ret>0) {
         TRACE("stat(%s) failed",file);
-        FREETMPS;
-        LEAVE;
         return -1;
     }
     hash2fattr(h,attr);
-    FREETMPS;
-    LEAVE;
     return 0;
 }
 
 int
 perlfs_mkdir(struct perlfs_context* c, char* file, int mode) {
+	LOCK_MUTEX(c);
     int ret, count;
     dSP;
     ENTER;
@@ -308,24 +311,22 @@ perlfs_mkdir(struct perlfs_context* c, char* file, int mode) {
     XPUSHs(sv_2mortal(newSVpv(file,0)));
     XPUSHs(sv_2mortal(newSViv(mode)));
     PUTBACK;
-	LOCK_MUTEX(c);
     count = call_pv("Lufs::C::mkdir",G_SCALAR);
-	UNLOCK_MUTEX(c);
     SPAGAIN;
     ret = POPi;
     PUTBACK;
+	FREETMPS;
+	LEAVE;
+	UNLOCK_MUTEX(c);
     if (!ret>0) {
-        FREETMPS;
-        LEAVE;
         return -1;
     }
-    FREETMPS;
-    LEAVE;
     return 0;
 }
 
 int
 perlfs_rmdir(struct perlfs_context* c, char* file) {
+	LOCK_MUTEX(c);
     int ret, count;
     dSP;
     ENTER;
@@ -333,24 +334,22 @@ perlfs_rmdir(struct perlfs_context* c, char* file) {
     PUSHMARK(SP);
     XPUSHs(sv_2mortal(newSVpv(file,0)));
     PUTBACK;
-	LOCK_MUTEX(c);
     count = call_pv("Lufs::C::rmdir",G_SCALAR);
-	UNLOCK_MUTEX(c);
     SPAGAIN;
     ret = POPi;
     PUTBACK;
+	FREETMPS;
+	LEAVE;
+	UNLOCK_MUTEX(c);
     if (!ret>0) {
-        FREETMPS;
-        LEAVE;
         return -1;
     }
-    FREETMPS;
-    LEAVE;
     return 0;
 }
 
 int
 perlfs_create(struct perlfs_context* c, char* file, int mode) {
+	LOCK_MUTEX(c);
     int ret, count;
     dSP;
     ENTER;
@@ -359,24 +358,22 @@ perlfs_create(struct perlfs_context* c, char* file, int mode) {
     XPUSHs(sv_2mortal(newSVpv(file,0)));
     XPUSHs(sv_2mortal(newSViv(mode)));
     PUTBACK;
-	LOCK_MUTEX(c);
     count = call_pv("Lufs::C::create",G_SCALAR);
-	UNLOCK_MUTEX(c);
     SPAGAIN;
     ret = POPi;
     PUTBACK;
+	FREETMPS;
+	LEAVE;
+	UNLOCK_MUTEX(c);
     if (!ret>0) {
-        FREETMPS;
-        LEAVE;
         return -1;
     }
-    FREETMPS;
-    LEAVE;
     return 0;
 }
 
 int
 perlfs_unlink(struct perlfs_context* c, char* file) {
+	LOCK_MUTEX(c);
     int ret, count;
     dSP;
     ENTER;
@@ -384,24 +381,22 @@ perlfs_unlink(struct perlfs_context* c, char* file) {
     PUSHMARK(SP);
     XPUSHs(sv_2mortal(newSVpv(file,0)));
     PUTBACK;
-	LOCK_MUTEX(c);
     count = call_pv("Lufs::C::unlink",G_SCALAR);
-	UNLOCK_MUTEX(c);
     SPAGAIN;
     ret = POPi;
     PUTBACK;
-    if (!ret>0) {
-        FREETMPS;
-        LEAVE;
-        return -1;
-    }
     FREETMPS;
     LEAVE;
+	UNLOCK_MUTEX(c);
+    if (!ret>0) {
+        return -1;
+    }
     return 0;
 }
 
 int
 perlfs_rename(struct perlfs_context* c, char* file_a, char* file_b) {
+	LOCK_MUTEX(c);
     int ret, count;
     dSP;
     ENTER;
@@ -410,24 +405,22 @@ perlfs_rename(struct perlfs_context* c, char* file_a, char* file_b) {
     XPUSHs(sv_2mortal(newSVpv(file_a,0)));
     XPUSHs(sv_2mortal(newSVpv(file_b,0)));
     PUTBACK;
-	LOCK_MUTEX(c);
     count = call_pv("Lufs::C::rename",G_SCALAR);
-	UNLOCK_MUTEX(c);
     SPAGAIN;
     ret = POPi;
     PUTBACK;
-    if (!ret>0) {
-        FREETMPS;
-        LEAVE;
-        return -1;
-    }
     FREETMPS;
     LEAVE;
+	UNLOCK_MUTEX(c);
+    if (!ret>0) {
+        return -1;
+    }
     return 0;
 }
 
 int
 perlfs_open(struct perlfs_context* c, char* file, unsigned mode) {
+	LOCK_MUTEX(c);
     int ret, count;
     dSP;
     ENTER;
@@ -436,24 +429,22 @@ perlfs_open(struct perlfs_context* c, char* file, unsigned mode) {
     XPUSHs(sv_2mortal(newSVpv(file,0)));
     XPUSHs(sv_2mortal(newSViv((int)mode)));
     PUTBACK;
-	LOCK_MUTEX(c);
     count = call_pv("Lufs::C::open",G_SCALAR);
-	UNLOCK_MUTEX(c);
     SPAGAIN;
     ret = POPi;
     PUTBACK;
-    if (!ret>0) {
-        FREETMPS;
-        LEAVE;
-        return -1;
-    }
     FREETMPS;
     LEAVE;
+	UNLOCK_MUTEX(c);
+    if (!ret>0) {
+        return -1;
+    }
     return 0;
 }
 
 int
 perlfs_release(struct perlfs_context* c, char* file) {
+	LOCK_MUTEX(c);
     int ret, count;
     dSP;
     ENTER;
@@ -461,24 +452,22 @@ perlfs_release(struct perlfs_context* c, char* file) {
     PUSHMARK(SP);
     XPUSHs(sv_2mortal(newSVpv(file,0)));
     PUTBACK;
-	LOCK_MUTEX(c);
     count = call_pv("Lufs::C::release",G_SCALAR);
-	UNLOCK_MUTEX(c);
     SPAGAIN;
     ret = POPi;
     PUTBACK;
-    if (!ret>0) {
-        FREETMPS;
-        LEAVE;
-        return -1;
-    }
     FREETMPS;
     LEAVE;
+	UNLOCK_MUTEX(c);
+    if (!ret>0) {
+        return -1;
+    }
     return 0;
 }
 
 int
 perlfs_read(struct perlfs_context* c, char* file, long long offset, unsigned long count, char* buf) {
+	LOCK_MUTEX(c);
     int ret;
     int cnt;
     dSP;
@@ -493,26 +482,27 @@ perlfs_read(struct perlfs_context* c, char* file, long long offset, unsigned lon
     XPUSHs(sv_2mortal(newSViv(count)));
     XPUSHs(data);
     PUTBACK;
-	LOCK_MUTEX(c);
     cnt = call_pv("Lufs::C::read",G_SCALAR);
-	UNLOCK_MUTEX(c);
     SPAGAIN;
     ret = POPi;
     PUTBACK;
     if (ret<0) {
         FREETMPS;
         LEAVE;
+		UNLOCK_MUTEX(c);
         return -1;
     }
     tmp = SvPV(data,ret);
     memmove(buf,tmp,ret);
     FREETMPS;
     LEAVE;
+	UNLOCK_MUTEX(c);
     return ret;
 }
 
 int
 perlfs_write(struct perlfs_context* c, char* file, long long offset, unsigned long count, char* buf) {
+	LOCK_MUTEX(c);
     int cnt;
     unsigned long ret;
     dSP;
@@ -524,20 +514,17 @@ perlfs_write(struct perlfs_context* c, char* file, long long offset, unsigned lo
     XPUSHs(sv_2mortal(newSViv(count)));
     XPUSHs(sv_2mortal(newSVpv(buf,count)));
     PUTBACK;
-	LOCK_MUTEX(c);
     cnt = call_pv("Lufs::C::write",G_SCALAR);
-	UNLOCK_MUTEX(c);
     SPAGAIN;
     ret = POPi;
     PUTBACK;
+	FREETMPS;
+	LEAVE;
+	UNLOCK_MUTEX(c);
     if (!ret>0) {
-        FREETMPS;
-        LEAVE;
         return -1;
     }
     //perlfs_touch(c,file);
-    FREETMPS;
-    LEAVE;
     return ret;
 }
 
@@ -556,6 +543,7 @@ perlfs_readlink(struct perlfs_context* c, char* file, char* buf, int bufsiz) { /
         ters), in case the buffer is too small to hold all of the contents.
 
     */
+	LOCK_MUTEX(c);
     int count, ret;
     dSP;
     SV *data;
@@ -569,27 +557,25 @@ perlfs_readlink(struct perlfs_context* c, char* file, char* buf, int bufsiz) { /
     XPUSHs(sv_2mortal(newSVpv(file,0)));
     XPUSHs(data);
     PUTBACK;
-	LOCK_MUTEX(c);
     count = call_pv("Lufs::C::readlink",G_SCALAR);
-	UNLOCK_MUTEX(c);
     SPAGAIN;
     ret = POPi;
     PUTBACK;
+	FREETMPS;
+	LEAVE;
+	UNLOCK_MUTEX(c);
     if (!ret > 0) {
-        FREETMPS;
-        LEAVE;
         return -1;
     }
     tmp = SvPV(data, bufsiz);
     memmove(buf,tmp,bufsiz);
 
-    FREETMPS;
-    LEAVE;
     return 0;
 }
 
 int
 perlfs_link(struct perlfs_context* c, char* file_a, char* file_b) {
+	LOCK_MUTEX(c);
     int ret, count;
     dSP;
     ENTER;
@@ -598,24 +584,22 @@ perlfs_link(struct perlfs_context* c, char* file_a, char* file_b) {
     XPUSHs(sv_2mortal(newSVpv(file_a,0)));
     XPUSHs(sv_2mortal(newSVpv(file_b,0)));
     PUTBACK;
-	LOCK_MUTEX(c);
     count = call_pv("Lufs::C::link",G_SCALAR);
-	UNLOCK_MUTEX(c);
     SPAGAIN;
     ret = POPi;
     PUTBACK;
-    if (!ret>0) {
-        FREETMPS;
-        LEAVE;
-        return -1;
-    }
     FREETMPS;
     LEAVE;
+	UNLOCK_MUTEX(c);
+    if (!ret>0) {
+        return -1;
+    }
     return 0;
 }
 
 int
 perlfs_symlink(struct perlfs_context* c, char* file_a, char* file_b) {
+	LOCK_MUTEX(c);
     int ret, count;
     dSP;
     ENTER;
@@ -624,24 +608,22 @@ perlfs_symlink(struct perlfs_context* c, char* file_a, char* file_b) {
     XPUSHs(sv_2mortal(newSVpv(file_a,0)));
     XPUSHs(sv_2mortal(newSVpv(file_b,0)));
     PUTBACK;
-	LOCK_MUTEX(c);
     count = call_pv("Lufs::C::symlink",G_SCALAR);
-	UNLOCK_MUTEX(c);
     SPAGAIN;
     ret = POPi;
     PUTBACK;
-    if (!ret>0) {
-        FREETMPS;
-        LEAVE;
-        return -1;
-    }
     FREETMPS;
     LEAVE;
+	UNLOCK_MUTEX(c);
+    if (!ret>0) {
+        return -1;
+    }
     return 0;
 }
 
 int
 perlfs_setattr(struct perlfs_context* c, char* file, struct lufs_fattr* attr) {
+	LOCK_MUTEX(c);
     int count;
     int ret;
     dSP;
@@ -655,18 +637,16 @@ perlfs_setattr(struct perlfs_context* c, char* file, struct lufs_fattr* attr) {
     XPUSHs(sv_2mortal(newSVpv(file,0)));
     XPUSHs(ref);
     PUTBACK;
-	LOCK_MUTEX(c);
     count = call_pv("Lufs::C::setattr",G_SCALAR);
-	UNLOCK_MUTEX(c);
     SPAGAIN;
     ret = POPi;
     PUTBACK;
-    if (!ret>0) {
-        FREETMPS;
-        LEAVE;
-    }
     FREETMPS;
     LEAVE;
+	UNLOCK_MUTEX(c);
+    if (!ret>0) {
+        return -1;
+    }
     return 0;
 }
 
@@ -674,13 +654,16 @@ void
 perlfs_touch(struct perlfs_context* c, char* file) {
     struct lufs_fattr fattr;
     struct lufs_fattr* a = &fattr;
+	LOCK_MUTEX(c);
     if (perlfs_stat(c,file,a) < 0) {
         TRACE("stat '%s' failed",file);
+		UNLOCK_MUTEX(c);
     }
     else {
         a->f_atime = time(NULL);
         a->f_mtime = time(NULL);
-        if (perlfs_setattr(c,file,a)==0) { TRACE("touch %s failed"); }
+        perlfs_setattr(c,file,a);
+		UNLOCK_MUTEX(c);
     }
 }
 

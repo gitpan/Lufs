@@ -1,5 +1,5 @@
 Build.PL
-lufs-0.97-dlopen-patch.diff
+lufs-0.97-patch.diff
 lib/Lufs.pm
 lib/Lufs/C.pm
 lib/Lufs/Ram.pm

@@ -38,11 +38,11 @@ sub _truncdata {
 	my $self = shift;
 	my $data = shift;
 	no warnings;
-	my $s = (length$data>32)?"...":'';
-	$s="'".substr($data, 0, 32)."'$s";
+	my $s = $data;
 	$s=~s{\n}{\\n}g;
-	$s=~s{([^ -~])}{sprintf("0x%x", $1)}ge;
-	$s;
+	$s=~s{([^ -~])}{sprintf"0x%02x",ord($1)}ge;
+	my $pad = (length($s)>32) ? '...' : '';
+	$s="'".substr($s, 0, 32)."$pad'";
 }
 
 sub modes { # this generates the %m hash

@@ -41,6 +41,7 @@ sub stat {
     $ref->{f_nlink} = $s[3];
     $ref->{f_uid} = $s[4];
     $ref->{f_gid} = $s[5];
+    $ref->{f_rdev} = $s[6];
     $ref->{f_size} = $s[7];
     $ref->{f_atime} = $s[8];
     $ref->{f_mtime} = $s[9];
@@ -138,7 +139,7 @@ sub setattr {
     my $attr = shift;
     unless (-e $file) { return 0 }
     my @s = CORE::stat($file) or return 0;
-    if ($s[6]!=$attr->{f_size}) { truncate($file,$attr->{f_size}) or return 0 }
+    if ($s[6]!=$attr->{f_size} && -f $file) { truncate($file,$attr->{f_size}) or return 0 }
     if ($s[2]!=$attr->{f_mode}) { chmod($attr->{f_mode},$file) or return 0 }
     if ($s[7]!=$attr->{f_atime} or $s[8]!=$attr->{f_mtime}) { utime($attr->{f_atime},$attr->{f_mtime},$file) or return 0 }
     return 1;

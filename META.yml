@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name: Lufs
-version: 0.16
+version: 0.17
 license: perl
 distribution_type: module
 requires:
@@ -13,7 +13,7 @@ conflicts: {}
 provides:
   Lufs:
     file: lib/Lufs.pm
-    version: 0.16
+    version: 0.17
   Lufs::C:
     file: lib/Lufs/C.pm
   Lufs::Glue:
