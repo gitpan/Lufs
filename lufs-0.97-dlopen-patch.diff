@@ -1,0 +1,12 @@
+diff -ru lufs-0.9.7/lufsd/fsctl.c lufs-0.9.7-perl/lufsd/fsctl.c
+--- lufs-0.9.7/lufsd/fsctl.c	2004-01-17 02:23:13.348109832 +0100
++++ lufs-0.9.7-perl/lufsd/fsctl.c	2004-01-17 02:24:37.820268112 +0100
+@@ -233,7 +233,7 @@
+     sprintf(buf, "liblufs-%s.so", fs);
+     TRACE("trying to load %s", buf);
+ 
+-    if(!(dlhandle = dlopen(buf, RTLD_LAZY))){
++    if(!(dlhandle = dlopen(buf, RTLD_LAZY | RTLD_GLOBAL))){
+ 	ERROR(dlerror());
+ 	goto fail;
+     }

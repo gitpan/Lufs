@@ -1,5 +1,8 @@
 Revision history for Perl extension Lufs.
 
+0.14  Sat Jan 17 02:48:20 CET 2004
+	- Added a patch for lufs that makes dynamic loading of perl extensions work
+
 0.13  Sun Jan 11 23:01:56 CET 2004
 	- Added test lib
 	- Documentation updates

@@ -18,15 +18,12 @@ struct domain {
 
 EXTERN_C void xs_init (pTHX);
 EXTERN_C void boot_DynaLoader (pTHX_ CV* cv);
-EXTERN_C void boot_Socket (pTHX_ CV* cv);
 
 EXTERN_C void
-
 xs_init(pTHX) {
     char *file = __FILE__;
-    dXSUB_SYS;
+    // dXSUB_SYS;
     newXS("DynaLoader::boot_DynaLoader", boot_DynaLoader, file);
-    // newXS("Socket::bootstrap", boot_Socket, file);
 }
 
 void* 

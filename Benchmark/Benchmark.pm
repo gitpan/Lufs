@@ -114,7 +114,7 @@ sub release {
     my $self = shift;
     my ($file) = shift;
 	my $d = time() - delete $self->{_tm};
-	$self->TRACE("closing file, $self->{_cnt} bytes in $d seconds");
+	print STDERR "closing file, $self->{_cnt} bytes in $d seconds");
     return 1;
 }
 
@@ -129,12 +129,12 @@ __END__
 
 =head1 NAME
 
-Lufs::Benchmark - A hello-world filesystem for use with perlufs
+Lufs::Benchmark - A benchmarking filesystem
 
 =head1 DESCRIPTION
 
- This is a hello world filesystem. 
- It contains two files: `hello' and `world'. Both files contain 4096 bytes.
+A filesystem that provides one big file and times access to that file.
+Statistics end up in the log file
 
 =head1 AUTHOR
 

@@ -129,27 +129,27 @@ Unless stated otherwise, methods are expected to return 1 for succes, and 0 for 
 
 =head2 init (CONFIG)
  
-	CONFIG is a hashref with configuration data, from both lufsd.conf and the -o switch.
+CONFIG is a hashref with configuration data, from both lufsd.conf and the -o switch.
 
 =head2 mount
 
-	This gets called whenever the filesystem is mounted.
+This gets called whenever the filesystem is mounted.
 
 =head2 umount
 
-	This gets called whenever the filesystem is umounted.
+This gets called whenever the filesystem is umounted.
 
 =head2 stat (FILE, STAT)
 
-	STAT is a hash reference. you should fill in the approriate values.
+STAT is a hash reference. you should fill in the approriate values.
 
 =head2 readdir (DIR, LIST)
 
-	LIST is an array ref that you should fill. You do not need to push `.' and `..', this will be done for you.
+LIST is an array ref that you should fill. You do not need to push `.' and `..', this will be done for you.
 
 =head2 mkdir (DIR, MODE)
 
-	MODE is the access mode for the dir that you are creating
+MODE is the access mode for the dir that you are creating
 
 =head2 open (FILE, MODE)
 
@@ -157,15 +157,15 @@ Unless stated otherwise, methods are expected to return 1 for succes, and 0 for 
 
 =head2 read (FILE, OFFSET, COUNT, BUF)
 
-	Assign the data to the last argument, return the number of bytes read.
+Assign the data to the last argument, return the number of bytes read.
 
 =head2 write (FILE, OFFSET, COUNT, BUF)
 	
-	Return the number of bytes written.
+Return the number of bytes written.
 
 =head2 readlink (FILE)
 
-	This should return a string: the filename that the link points at.
+This should return a string: the filename that the link points at.
 
 =head1 AUTHOR
 

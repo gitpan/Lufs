@@ -1,25 +1,8 @@
 package Lufs::Glue;
 $|++;
 
+use Fcntl;
 our $trace = 0;
-
-our %m = (
-          '131072' => 'O_NOFOLLOW',
-          '128' => 'O_EXCL',
-          '512' => 'O_TRUNC',
-          '2048' => 'O_NONBLOCK',
-          '3' => 'O_ACCMODE',
-          '1024' => 'O_APPEND',
-          '64' => 'O_CREAT',
-          '32768' => 'O_LARGEFILE',
-          '16384' => 'O_DIRECT',
-          '2' => 'O_RDWR',
-          '65536' => 'O_DIRECTORY',
-          '1' => 'O_WRONLY',
-          '4096' => 'O_RSYNC',
-          '8192' => 'O_ASYNC',
-          '256' => 'O_NOCTTY'
-        );
 
 sub TRACE {
 	my $self = shift;
@@ -66,6 +49,7 @@ sub mode {
 	my $self = shift;
 	my $mode = shift || Fcntl::O_CREAT | Fcntl::O_LARGEFILE;
 	my @m;
+	my %m = modes();
 	for (keys %m) {
 		if (($mode & $_) == $_) {
 			push @m, $m{$_};

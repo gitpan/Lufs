@@ -19,6 +19,12 @@ To install this module type the following:
    make
    make install
 
+   # the lufs patch:
+   cd lufs-0.9.7
+   patch -p1 < lufs-0.97-dlopen-patch.diff
+   make
+   make install
+
 USAGE
 
 For usage information, consult the Lufs(3pm) manpage.
