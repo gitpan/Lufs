@@ -1,13 +1,16 @@
 package Lufs::C;
 
 use vars qw/$AUTOLOAD/;
+use base 'Lufs::Glue';
 
 our $object;
 
 sub AUTOLOAD {
     my $method = (split/::/,$AUTOLOAD)[-1];
     $method eq 'DESTROY' && return;
-    $object->$method(@_);
+	my $ret = $object->$method(@_);
+	$object->TRACE("$method('$_[0]', ...)=$ret") unless $method eq 'read';
+	$ret;
 }
 
 1;

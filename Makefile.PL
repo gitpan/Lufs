@@ -1,5 +1,4 @@
 use ExtUtils::MakeMaker;
-
 WriteMakefile(
     'NAME'		=> 'Lufs',
     'VERSION_FROM'	=> 'Lufs.pm',
@@ -7,7 +6,4 @@ WriteMakefile(
        (AUTHOR     => 'Raoul Zwart <rlzwart@cpan.org>') : ()),
 );
 
-chdir('perlfs');
-system('./make.sh');
-chdir('..');
-
+print "Don't forget to `make; make install' in ./perlfs\n";

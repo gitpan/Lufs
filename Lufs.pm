@@ -5,7 +5,7 @@ use Lufs::C;
 
 use strict;
 use warnings;
-our $VERSION = 0.09;
+our $VERSION = 0.11;
 
 use vars qw/$AUTOLOAD/;
 
@@ -71,7 +71,7 @@ Lufs - Perl plug for lufs
 
 =head1 AUTHOR
 
-Raoul Zwart, E<lt>rlzwart@cpan.org<gt>
+Raoul Zwart, E<lt>rlzwart@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 

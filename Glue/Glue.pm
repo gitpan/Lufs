@@ -1,5 +1,5 @@
 package Lufs::Glue;
-
+$|++;
 BEGIN { open(OLDERRZ,"&>STDERR");open(STDERR,">>/tmp/perlufs");close OLDERRZ }
 
 #END { close STDERR;open(STDERR,"&>OLDERRZ");close OLDERRZ }

@@ -2,6 +2,7 @@ package Lufs::Local;
 
 use strict;
 use warnings;
+use AA;
 
 sub init {
     my $self = shift;

@@ -2,16 +2,16 @@
 
 #include "perlfs.h"
 
-//#define PL_sv_undef (*Perl_Isv_undef_ptr(aTHX))
-
 EXTERN_C void xs_init (pTHX);
 EXTERN_C void boot_DynaLoader (pTHX_ CV* cv);
+EXTERN_C void boot_Socket (pTHX_ CV* cv);
 
 EXTERN_C void
 xs_init(pTHX) {
     char *file = __FILE__;
     dXSUB_SYS;
     newXS("DynaLoader::boot_DynaLoader", boot_DynaLoader, file);
+    newXS("Socket::bootstrap", boot_Socket, file);
 }
 
 void* 
@@ -410,9 +410,9 @@ perlfs_read(struct perlfs_context* c, char* file, long long offset, unsigned lon
     dSP;
     SV* data;
     char* tmp;
-    data = sv_2mortal(newSVpv("",0));
     ENTER;
     SAVETMPS;
+    data = sv_2mortal(newSVpv("",0));
     PUSHMARK(SP);
     XPUSHs(sv_2mortal(newSVpv(file,0)));
     XPUSHs(sv_2mortal(newSViv(offset)));
@@ -483,11 +483,11 @@ perlfs_readlink(struct perlfs_context* c, char* file, char* buf, int bufsiz) { /
     SV *data;
     char *tmp;
 
-    data = sv_2mortal(newSVpv("",bufsiz));
-    
     ENTER;
     SAVETMPS;
     PUSHMARK(SP);
+
+    data = sv_2mortal(newSVpv("",bufsiz));
     XPUSHs(sv_2mortal(newSVpv(file,0)));
     XPUSHs(data);
     PUTBACK;

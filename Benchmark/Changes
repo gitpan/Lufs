@@ -1,0 +1,6 @@
+Revision history for Perl extension Lufs::Benchmark.
+
+0.01  Mon Jun  9 19:30:24 2003
+	- original version; created by h2xs 1.22 with options
+		-A -X -n Lufs::Benchmark
+
