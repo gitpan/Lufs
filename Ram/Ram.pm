@@ -9,6 +9,7 @@ use constant FL => 0100000;
 sub init {
     my $self = shift;
     $self->{nodes} = [];
+	$self->{config} = pop;
     $self->new_node('',DR|0755);
     $self->{pwd} = $self->{nodes}[0];
 }
@@ -348,56 +349,22 @@ sub write {
 
 1;
 __END__
-# Below is stub documentation for your module. You'd better edit it!
 
 =head1 NAME
 
-Lufs::Ram - Perl extension for blah blah blah
-
-=head1 SYNOPSIS
-
-  use Lufs::Ram;
-  blah blah blah
-
-=head1 ABSTRACT
-
-  This should be the abstract for Lufs::Ram.
-  The abstract is used when making PPD (Perl Package Description) files.
-  If you don't want an ABSTRACT you should also edit Makefile.PL to
-  remove the ABSTRACT_FROM option.
+Lufs::Ram - Storage in a perl data structure
 
 =head1 DESCRIPTION
 
-Stub documentation for Lufs::Ram, created by h2xs. It looks like the
-author of the extension was negligent enough to leave the stub
-unedited.
-
-Blah blah blah.
-
-=head2 EXPORT
-
-None by default.
-
-
-
-=head1 SEE ALSO
-
-Mention other useful documentation such as the documentation of
-related modules or operating system documentation (such as man pages
-in UNIX), or any relevant external documentation such as RFCs or
-standards.
-
-If you have a mailing list set up for your module, mention it here.
-
-If you have a web site set up for your module, mention it here.
+This is a reference implementation of a ram-based filesystem in perl.
 
 =head1 AUTHOR
 
-root, E<lt>root@internE<gt>
+Raoul Zwart, E<lt>rlzwart@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2003 by root
+Copyright 2003 by Raoul Zwart
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 

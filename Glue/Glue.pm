@@ -1,33 +1,96 @@
 package Lufs::Glue;
 $|++;
-BEGIN { open(OLDERRZ,"&>STDERR");open(STDERR,">>/tmp/perlufs");close OLDERRZ }
 
-#END { close STDERR;open(STDERR,"&>OLDERRZ");close OLDERRZ }
+our $trace = 0;
+
+our %m = (
+          '131072' => 'O_NOFOLLOW',
+          '128' => 'O_EXCL',
+          '512' => 'O_TRUNC',
+          '2048' => 'O_NONBLOCK',
+          '3' => 'O_ACCMODE',
+          '1024' => 'O_APPEND',
+          '64' => 'O_CREAT',
+          '32768' => 'O_LARGEFILE',
+          '16384' => 'O_DIRECT',
+          '2' => 'O_RDWR',
+          '65536' => 'O_DIRECTORY',
+          '1' => 'O_WRONLY',
+          '4096' => 'O_RSYNC',
+          '8192' => 'O_ASYNC',
+          '256' => 'O_NOCTTY'
+        );
 
 sub TRACE {
-    print STDERR "$_[1]\n";
+	my $self = shift;
+	my $method = shift;
+	return unless $trace;
+	my (@arg) = @_;
+	my $ret = pop(@arg);
+	if ($method eq 'create') {
+		$arg[1] = $self->mode($arg[1]);
+	}
+	if ($method eq 'stat') {
+		$arg[1] = $self->hashdump($arg[1]);
+	}
+	if ($method eq 'write' or $method eq 'read') {
+		$arg[3] = $self->_truncdata($arg[3]);
+	}
+	if ($method eq '_init') {
+		$arg[0] = $self->hashdump($arg[0]);
+	}
+	$arg[0] = "'$arg[0]'";
+    print STDERR "$method (".join(', ', @arg).") = $ret\n";
 }
 
-sub TRACEx {
-    my $self = shift;
-    my $msg = shift;
-    open(ERR,">>/tmp/perlufs") or return;
-    print ERR "$msg\n";
-    close ERR;
+sub _truncdata {
+	my $self = shift;
+	my $data = shift;
+	no warnings;
+	my $s = (length$data>32)?"...":'';
+	"'".substr($data, 0, 32)."'$s";
 }
 
+sub modes { # this generates the %m hash
+	my $self = shift;
+	my %m;
+	for (grep /^[O]/, keys %{Fcntl::}) {
+		my $v = eval "Fcntl::$_";
+		next unless (int($v) eq $v);
+		$m{$v} = $_ if $v;
+	}
+	%m;
+}
+
+sub mode {
+	my $self = shift;
+	my $mode = shift || Fcntl::O_CREAT | Fcntl::O_LARGEFILE;
+	my @m;
+	for (keys %m) {
+		if (($mode & $_) == $_) {
+			push @m, $m{$_};
+		}
+	}
+	join(' | ', @m);
+}
+
+sub hashdump {
+	my $self = shift;
+	my $h = shift;
+ 	'{ '.join(', ', map { "$_ => $h->{$_}" } keys %{$h}).'}';
+}
 1;
 __END__
 # Below is stub documentation for your module. You'd better edit it!
 
 =head1 NAME
 
-Lufs::Glue - Perl extension for blah blah blah
+Lufs::Glue - misc subs
 
 =head1 SYNOPSIS
 
-  use Lufs::Glue;
-  blah blah blah
+  use base 'Lufs::Glue';
+  $self->foo
 
 =head1 ABSTRACT
 

@@ -1,5 +1,10 @@
 Revision history for Perl extension Lufs.
 
+0.13  Sun Jan 11 23:01:56 CET 2004
+	- Added test lib
+	- Documentation updates
+	- Configuration hash
+
 0.12  Wed Dec 31 09:07:16 CET 2003
 	- Fixed major memory leaks
 	- Added Makefile for the C library

@@ -5,7 +5,7 @@ use Lufs::C;
 
 use strict;
 use warnings;
-our $VERSION = 0.12;
+our $VERSION = 0.13;
 
 use vars qw/$AUTOLOAD/;
 
@@ -13,22 +13,22 @@ sub new {
     my $cls = shift;
     my $self = {};
     bless $self => $cls;
-    # $self->TRACE("\t[$$] Lufs object created");
     $Lufs::C::object = $self;
 }
 
 sub _init {
     my $self = shift;
-    my ($class,$arg,$root) = @_;
-    my $f = $class;
+    my $opt = pop;
+    my ($f, $class) = ($opt->{host}, $opt->{host});
     $f =~ s{\.}{/}g;$f .= '.pm';
     $class =~ s{\.}{::}g;
     eval "require '$f'";
-    if ($@) { $self->TRACE("cannot load class: $@"); return 0 }
+    if ($@) { warn "cannot load class: $@"; return 0 }
     eval 'push @'.$class."::ISA, 'Lufs::Glue'";
-    if ($@) { $self->TRACE("cannot inherit from Lufs::Glue: $@"); return 0 }
     $self->{fs} = bless {} => $class;
-    $self->{fs}->init($arg);
+	open(STDERR, ">> $opt->{logfile}") if $opt->{logfile};
+	$Lufs::Glue::trace = 1 if $opt->{logfile};
+    $self->{fs}->init($opt);
 }
 
 sub AUTOLOAD {
@@ -58,8 +58,8 @@ Lufs - Perl plug for lufs
   Lufs::Trans - emulates filehandles on top of sequential reads/writes
 
   lufsmount -c 1 perlfs://Lufs.Stub/ /mnt/perl
-  lufsmount -c 1 perlfs://Lufs.Local/ /mnt/foo
-  lufsmount -c 1 perlfs://Lufs.Ram/ /mnt/bar
+  lufsmount -c 1 -o logfile=/tmp/perlfslog perlfs://Lufs.Local/ /mnt/foo
+  lufsmount -c 1 -o maxsize=20m perlfs://Lufs.Ram/ /mnt/bar
   lufsmount -c 1 perlfs://Lufs.Trans/ /mnt/baz
   # or, if you have autofs:
   cd /mnt/perl/root@Lufs.Stub/

@@ -1,16 +1,31 @@
 /* june 2003 - Raoul Zwart - rlzwart@cpan.org */
 
 #include "perlfs.h"
+#include "list.h"
+
+struct option {
+	char *key;
+	char *value;
+	struct list_head list;
+};  
+
+struct domain {
+	char *name;
+	struct list_head properties;
+	struct list_head list;
+};
+
 
 EXTERN_C void xs_init (pTHX);
 EXTERN_C void boot_DynaLoader (pTHX_ CV* cv);
 EXTERN_C void boot_Socket (pTHX_ CV* cv);
 
 EXTERN_C void
+
 xs_init(pTHX) {
     char *file = __FILE__;
     dXSUB_SYS;
-    // newXS("DynaLoader::boot_DynaLoader", boot_DynaLoader, file);
+    newXS("DynaLoader::boot_DynaLoader", boot_DynaLoader, file);
     // newXS("Socket::bootstrap", boot_Socket, file);
 }
 
@@ -48,6 +63,21 @@ _init_perl(struct perlfs_context* c) {
     eval_pv("use Lufs;Lufs->new", TRUE);
 }
 
+static struct domain*
+find_domain(struct list_head *conf, char *name){
+    struct list_head *p;
+    struct domain *cls;
+    
+    list_for_each(p, conf){
+    cls = list_entry(p, struct domain, list);
+    if(!strcmp(name, cls->name)){
+        TRACE("domain found");
+        return cls;
+    }
+    }
+    
+    return NULL;                                                                    }   
+
 void
 _setup_perl(struct perlfs_context* c) {
     char *host, *port, *root;
@@ -64,10 +94,25 @@ _setup_perl(struct perlfs_context* c) {
     dSP;
     ENTER;
     SAVETMPS;
+    HV *h = newHV();
+	SV *ref;
+	struct domain *class;
+	struct option *prop;
+	struct list_head *p;
+
+	/*
+		hv_store(h, "host", 4, newSVpv(host, strlen(host)), 0);
+		hv_store(h, "root", 4, newSVpv(root, strlen(root)), 0);
+		hv_store(h, "port", 4, newSVpv(port, strlen(port)), 0);
+	*/
+	class = find_domain(c->cfg, "MOUNT");
+	list_for_each(p, &class->properties) {
+		prop = list_entry(p, struct option, list);
+		hv_store(h, prop->key, strlen(prop->key), newSVpv(prop->value, strlen(prop->value)), 0);
+	}
+	ref = newRV((SV *)h);
     PUSHMARK(SP);
-    XPUSHs(sv_2mortal(newSVpv(host, 0)));
-    XPUSHs(sv_2mortal(newSVpv(port, 0)));
-    XPUSHs(sv_2mortal(newSVpv(root, 0)));
+    XPUSHs(sv_2mortal(ref));
     PUTBACK;
     call_pv("Lufs::C::_init",G_DISCARD);
     FREETMPS;

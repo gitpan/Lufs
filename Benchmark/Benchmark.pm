@@ -9,6 +9,7 @@ sub init {
     return 1;
 }
 
+
 sub AUTOLOAD {
     my $self = shift;
     my $method = (split/::/,$AUTOLOAD)[-1];

@@ -22,6 +22,7 @@ To install this module type the following:
 USAGE
 
 For usage information, consult the Lufs(3pm) manpage.
+For programming examples, see the Lufs::Stub(3pm) manpage.
 
 DEPENDENCIES
 

@@ -5,24 +5,21 @@ use warnings;
 
 sub init {
     my $self = shift;
-    #$self->TRACE(ref($self)."->init($_[0])");
 }
 
 sub _file { $_[0] } #!~ /^\// ? "/".$_[0] : $_[0] }
 
 sub mount {
     my $self = shift;
-    # $self->TRACE("mount");
     return 1;
 }
 
 sub umount {
     my $self = shift;
-    # $self->TRACE("umount");
     return 1;
 }
 
-sub readdir { # works
+sub readdir {
     my $self = shift;
     my $dir = _file(shift);
     my $ref = shift;
@@ -40,7 +37,7 @@ sub readdir { # works
 #     ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,
 #      $atime,$mtime,$ctime,$blksize,$blocks)
 
-sub stat { # works
+sub stat {
     my $self = shift;
     my $file = _file(shift);
     my $ref = shift;
@@ -61,7 +58,7 @@ sub stat { # works
     return 1;
 }
  
-sub mkdir { # works
+sub mkdir { 
     my $self = shift;
     my $dir = _file(shift);
     my $mode = shift;
@@ -69,7 +66,7 @@ sub mkdir { # works
     else { return 0 }
 }
 
-sub open { # works
+sub open { 
     my $self = shift;
     my $file = _file(shift);
     my $mode = shift;
@@ -87,19 +84,19 @@ sub release {
     return 1;
 }
 
-sub unlink { # works
+sub unlink { 
     my $self = shift;
     my $file = shift;
     CORE::unlink($file);
 }
 
-sub rmdir { # works
+sub rmdir { 
     my $self = shift;
     my $file = shift;
     CORE::rmdir($file);
 }
 
-sub read { # lots of trailing nulls...
+sub read { 
     my $self = shift;
     my $file = _file(shift);
     my $offset = shift;
@@ -115,11 +112,9 @@ sub write {
     my $self = shift;
     my $file = _file(shift);
     my ($offset, $count, $buf) = @_;
-    # $self->TRACE("write('$file','$offset','$count')");
     CORE::sysopen(FH,$file,1) or return -1;
     CORE::seek(FH,$offset,0)or $self->TRACE("sysseek($file,$offset,0) failed: $!");
     CORE::print(FH $buf);
-    # unless (defined $cnt) { $self->TRACE("write FAILED: $!"); $cnt = -1 }
     CORE::close(FH);
     return $count;
 }
@@ -137,7 +132,6 @@ sub symlink {
 sub readlink {
     my $self = shift;
     my $link = _file(shift);
-    $self->TRACE("readlink($link)");
     if ($_[0] = CORE::readlink($link)) {
         $_[0] =~ s{^/}{};
         return 1;
@@ -174,56 +168,16 @@ sub rename {
 
 1;
 __END__
-# Below is stub documentation for your module. You'd better edit it!
 
 =head1 NAME
 
-Lufs::Local - Perl extension for blah blah blah
+Lufs::Local - Transparent local filesystem
 
-=head1 SYNOPSIS
-
-  use Lufs::Local;
-  blah blah blah
-
-=head1 ABSTRACT
-
-  This should be the abstract for Lufs::Local.
-  The abstract is used when making PPD (Perl Package Description) files.
-  If you don't want an ABSTRACT you should also edit Makefile.PL to
-  remove the ABSTRACT_FROM option.
-
-=head1 DESCRIPTION
-
-Stub documentation for Lufs::Local, created by h2xs. It looks like the
-author of the extension was negligent enough to leave the stub
-unedited.
-
-Blah blah blah.
-
-=head2 EXPORT
-
-None by default.
-
-
-
-=head1 SEE ALSO
-
-Mention other useful documentation such as the documentation of
-related modules or operating system documentation (such as man pages
-in UNIX), or any relevant external documentation such as RFCs or
-standards.
-
-If you have a mailing list set up for your module, mention it here.
-
-If you have a web site set up for your module, mention it here.
-
-=head1 AUTHOR
-
-root, E<lt>root@internE<gt>
+Raoul Zwart, E<lt>rlzwart@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2003 by root
+Copyright 2003 by Raoul Zwart
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 

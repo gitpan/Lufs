@@ -122,8 +122,50 @@ Lufs::Stub - A hello-world filesystem for use with perlufs
 
 =head1 DESCRIPTION
 
- This is a hello world filesystem. 
- It contains two files: `hello' and `world'. Both files contain 4096 bytes.
+This is a reference implementation, demonstrating the API.
+Unless stated otherwise, methods are expected to return 1 for succes, and 0 for failure.
+
+=head1 METHODS
+
+=head2 init (CONFIG)
+ 
+	CONFIG is a hashref with configuration data, from both lufsd.conf and the -o switch.
+
+=head2 mount
+
+	This gets called whenever the filesystem is mounted.
+
+=head2 umount
+
+	This gets called whenever the filesystem is umounted.
+
+=head2 stat (FILE, STAT)
+
+	STAT is a hash reference. you should fill in the approriate values.
+
+=head2 readdir (DIR, LIST)
+
+	LIST is an array ref that you should fill. You do not need to push `.' and `..', this will be done for you.
+
+=head2 mkdir (DIR, MODE)
+
+	MODE is the access mode for the dir that you are creating
+
+=head2 open (FILE, MODE)
+
+=head2 release (FILE)
+
+=head2 read (FILE, OFFSET, COUNT, BUF)
+
+	Assign the data to the last argument, return the number of bytes read.
+
+=head2 write (FILE, OFFSET, COUNT, BUF)
+	
+	Return the number of bytes written.
+
+=head2 readlink (FILE)
+
+	This should return a string: the filename that the link points at.
 
 =head1 AUTHOR
 

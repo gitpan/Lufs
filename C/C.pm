@@ -4,12 +4,13 @@ use vars qw/$AUTOLOAD/;
 use base 'Lufs::Glue';
 
 our $object;
+our %config;
 
 sub AUTOLOAD {
     my $method = (split/::/,$AUTOLOAD)[-1];
     $method eq 'DESTROY' && return;
 	my $ret = $object->$method(@_);
-	$object->TRACE("$method('$_[0]', ...)=$ret") unless $method eq 'read';
+	$object->TRACE($method, @_, $ret);
 	$ret;
 }
 
@@ -19,52 +20,23 @@ __END__
 
 =head1 NAME
 
-Lufs::C - Perl extension for blah blah blah
-
-=head1 SYNOPSIS
-
-  use Lufs::C;
-  blah blah blah
+Lufs::C - C interface to perl
 
 =head1 ABSTRACT
 
-  This should be the abstract for Lufs::C.
-  The abstract is used when making PPD (Perl Package Description) files.
-  If you don't want an ABSTRACT you should also edit Makefile.PL to
-  remove the ABSTRACT_FROM option.
-
-=head1 DESCRIPTION
-
-Stub documentation for Lufs::C, created by h2xs. It looks like the
-author of the extension was negligent enough to leave the stub
-unedited.
-
-Blah blah blah.
-
-=head2 EXPORT
-
-None by default.
-
-
+This interface is used by the C code to call the perl subs.
 
 =head1 SEE ALSO
 
-Mention other useful documentation such as the documentation of
-related modules or operating system documentation (such as man pages
-in UNIX), or any relevant external documentation such as RFCs or
-standards.
-
-If you have a mailing list set up for your module, mention it here.
-
-If you have a web site set up for your module, mention it here.
+C<perlfs.c>
 
 =head1 AUTHOR
 
-root, E<lt>root@internE<gt>
+Raoul Zwart, E<lt>rlzwart@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2003 by root
+Copyright 2003 by Raoul Zwart
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 
