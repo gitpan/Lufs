@@ -31,7 +31,7 @@ my $build = $class->new(
 	license => 'perl',
 	requires => {
 		'HTML::TokeParser::Simple' => 0,
-		'Linux::Pid' => 0,
+		'Linux::Pid' 		=> 0,
 		'Inline::MakeMaker' => 0,
 	}
 );

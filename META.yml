@@ -1,8 +1,10 @@
 --- #YAML:1.0
 name: Lufs
-version: 0.17
+version: 0.19
+author:
+  - Raoul Zwart <rlzwart@cpan.org>
+abstract: Perl plug for lufs
 license: perl
-distribution_type: module
 requires:
   HTML::TokeParser::Simple: 0
   Inline::MakeMaker: 0
@@ -13,7 +15,7 @@ conflicts: {}
 provides:
   Lufs:
     file: lib/Lufs.pm
-    version: 0.17
+    version: 0.19
   Lufs::C:
     file: lib/Lufs/C.pm
   Lufs::Glue:
@@ -22,10 +24,14 @@ provides:
     file: lib/Lufs/Http.pm
   Lufs::Local:
     file: lib/Lufs/Local.pm
+  Lufs::Mux:
+    file: lib/Lufs/Mux.pm
   Lufs::Ram:
     file: lib/Lufs/Ram.pm
   Lufs::Ram::Node:
     file: lib/Lufs/Ram.pm
+  Lufs::Rot13:
+    file: lib/Lufs/Rot13.pm
   Lufs::Stub:
     file: lib/Lufs/Stub.pm
   Lufs::Svn:
@@ -34,4 +40,4 @@ provides:
     file: lib/Lufs/Svn.pm
   Lufs::Svn::Svn::System:
     file: lib/Lufs/Svn.pm
-generated_by: Module::Build version 0.21
+generated_by: Module::Build version 0.22

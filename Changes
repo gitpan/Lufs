@@ -1,5 +1,10 @@
 Revision history for Perl extension Lufs.
 
+0.18  Sat Jan 31 08:53:02 CET 2004
+	- Major bugfixes and stability improvements
+	- Added Lufs::Mux - multiple dirs reflected under one mount point
+	- Added Lufs::Rot13 - cheesy crypto layer
+
 0.16  Fri Jan 30 02:51:51 CET 2004
 	- Added mutex locking for thread safety
 	- Fixed Makefile

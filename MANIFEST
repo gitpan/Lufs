@@ -8,6 +8,8 @@ lib/Lufs/Stub.pm
 lib/Lufs/Glue.pm
 lib/Lufs/Http.pm
 lib/Lufs/Svn.pm
+lib/Lufs/Rot13.pm
+lib/Lufs/Mux.pm
 lib/Lufs/Howto.pod
 README
 MANIFEST
