@@ -17,8 +17,8 @@
 #include <pthread.h>
 
 #ifdef USE_MUTEX
-#define LOCK_MUTEX(c) pthread_mutex_lock(&c->mutex)
-#define UNLOCK_MUTEX(c) pthread_mutex_unlock(&c->mutex)
+#define LOCK_MUTEX(c) pthread_mutex_lock(mutex)
+#define UNLOCK_MUTEX(c) pthread_mutex_unlock(mutex)
 #else
 #define LOCK_MUTEX(c)
 #define UNLOCK_MUTEX(c)
@@ -30,8 +30,12 @@ struct perlfs_context {
     struct dir_cache *cache;
     struct credentials *cred;
     struct list_head *cfg;
-	pthread_mutex_t mutex;
+	pthread_mutex_t *mutex;
 };
+
+static PerlInterpreter *perl; /* just one for now */
+static pthread_mutex_t mut;
+static pthread_mutex_t *mutex;
 
 char * getarstring(AV *, I32);
 void _create_perl(struct perlfs_context*);

@@ -5,7 +5,7 @@ use Lufs::C;
 
 use strict;
 use warnings;
-our $VERSION = 0.19;
+our $VERSION = 0.21;
 
 use vars qw/$AUTOLOAD/;
 
@@ -63,11 +63,18 @@ Lufs - Perl plug for lufs
   Lufs::Ram
   Lufs::Http
   Lufs::Svn
+  Lufs::Mux
+  Lufs::Rot13
+  Lufs::Sql
+  Lufs::NetHood
 
   lufsmount -o logfile=/tmp/perlfslog perlfs://Lufs.Local/ /mnt/foo
   lufsmount perlfs://Lufs.Ram/ /mnt/bar
+  lufsmount perlfs://Lufs.Rot13/mnt/bar /mnt/baz
   lufsmount -o uri=svn://datamoeras.org/perlufs perlfs://Lufs::Svn/
   lufsmount -o uri=http://datamoeras.org perlfs://Lufs::Http/
+  lufsd none /mnt/join -o 'fs=perlfs,host=Lufs.Mux,root=/,dirs=/mnt/box1;/mnt/box2;/mnt/box3'
+  
   # or, if you have autofs:
   cd /mnt/perl/Lufs.Local/
   cd /mnt/svn/perlufs

@@ -1,4 +1,4 @@
-/* jue 2003 - Raoul Zwart - rlzwart@cpan.org */
+/* june 2003 - Raoul Zwart - rlzwart@cpan.org */
 
 #include "perlfs.h"
 #include "list.h"
@@ -32,18 +32,28 @@ perlfs_init(struct list_head *cfg, struct dir_cache *cache, struct credentials *
     if(!(c = malloc(sizeof(struct perlfs_context)))){
         return NULL;
     }
+
 #ifdef USE_MUTEX
-	pthread_mutex_init(&c->mutex, NULL);
+	if (mutex == NULL) {
+		static pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
+		mutex = &mut;
+	}
 #endif
-	LOCK_MUTEX(c);
     c->cache = cache;
     c->cred = cred;
     c->cfg = cfg;
-
-    _create_perl(c);
-    _init_perl(c);
-    _setup_perl(c);
-	UNLOCK_MUTEX(c);
+	
+	if (perl == NULL) {
+		LOCK_MUTEX(c);
+		_create_perl(c);
+		_init_perl(c);
+		_setup_perl(c);
+		perl = c->perl;
+		UNLOCK_MUTEX(c);
+	}
+	else {
+		c->perl = perl;
+	}
     
     return c;
 }
@@ -71,14 +81,15 @@ find_domain(struct list_head *conf, char *name){
     struct domain *cls;
     
     list_for_each(p, conf){
-    cls = list_entry(p, struct domain, list);
-    if(!strcmp(name, cls->name)){
-        TRACE("domain found");
-        return cls;
-    }
+		cls = list_entry(p, struct domain, list);
+		if(!strcmp(name, cls->name)){
+			TRACE("domain found");
+			return cls;
+		}
     }
     
-    return NULL;                                                                    }   
+    return NULL;
+}   
 
 void
 _setup_perl(struct perlfs_context* c) {
@@ -529,7 +540,7 @@ perlfs_write(struct perlfs_context* c, char* file, long long offset, unsigned lo
 }
 
 int
-perlfs_readlink(struct perlfs_context* c, char* file, char* buf, int bufsiz) { /* untested .... */
+perlfs_readlink(struct perlfs_context* c, char* file, char* buf, int bufsiz) {
     /*
        #include <unistd.h>
 
@@ -553,24 +564,27 @@ perlfs_readlink(struct perlfs_context* c, char* file, char* buf, int bufsiz) { /
     SAVETMPS;
     PUSHMARK(SP);
 
-    data = sv_2mortal(newSVpv("",bufsiz));
+    data = sv_2mortal(newSVpv("",0));
     XPUSHs(sv_2mortal(newSVpv(file,0)));
     XPUSHs(data);
     PUTBACK;
     count = call_pv("Lufs::C::readlink",G_SCALAR);
     SPAGAIN;
     ret = POPi;
+    if (!ret > 0) {
+		PUTBACK;
+		FREETMPS;
+		LEAVE;
+		UNLOCK_MUTEX(c);
+        return -1;
+    }
+    tmp = SvPV(data,ret);
+    memmove(buf,tmp,ret);
     PUTBACK;
 	FREETMPS;
 	LEAVE;
 	UNLOCK_MUTEX(c);
-    if (!ret > 0) {
-        return -1;
-    }
-    tmp = SvPV(data, bufsiz);
-    memmove(buf,tmp,bufsiz);
-
-    return 0;
+    return ret;
 }
 
 int

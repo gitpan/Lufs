@@ -35,7 +35,7 @@ sub stat {
     my $file = shift;
     my $ref = shift;
     unless (-e $file) { return 0 }
-    my @s = CORE::stat($file) or return 0;
+    my @s = (-l $file) ? CORE::lstat($file) : CORE::stat($file) or return 0;
     $ref->{f_ino} = $s[1];
     $ref->{f_mode} = $s[2];
     $ref->{f_nlink} = $s[3];
