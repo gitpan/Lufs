@@ -1,0 +1,6 @@
+Revision history for Perl extension Lufs::Trans.
+
+0.01  Tue Jun 10 22:11:55 2003
+	- original version; created by h2xs 1.22 with options
+		-A -X -n Lufs::Trans
+
